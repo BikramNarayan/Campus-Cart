@@ -1,0 +1,112 @@
+.home-div{
+    margin-top: auto;
+    margin-bottom: auto;
+}
+.home-div2 img{
+    margin-top: auto;
+    margin-bottom: auto;
+}
+.col-md-6 .img-fluid{
+    padding: 50px;
+}
+.existing-ride .card{
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    margin-bottom: 0;
+}
+.card-img-top{
+    height: auto;
+}
+h1{
+    font-family: 'Cormorant Upright', serif;
+    font-size: 50px;
+    font-weight: 500;
+    line-height:70px;
+    color: #07410c;
+}
+.yellow-text{
+    color: #d2ec2f;
+    font-weight: 400;
+    font-size: 22px;
+}
+.sapling{
+    height: 60px;
+}
+.card{
+    border-radius: 28px;
+    background-color: #E8FAC7;
+}
+.news-img{
+    width: 90%;
+}
+.card:hover{
+    transition: transform 0.5s;
+    transform: scale(1.03);
+    cursor: pointer;
+}
+.card-title {
+    text-decoration: none;
+    color: #043308;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-weight: 400;
+}
+.para-text{
+    width: 100%;
+    color: #6b6b6c;
+}
+i{
+    rotate: 45deg;
+    font-size: 150%;
+    position: relative;
+    top: 5px;
+    right: 5px;
+}
+
+.butn{
+    background-color: #D7E5BE;
+    border-radius: 35px;
+    padding: 8px 30px;
+    color: #043308;
+    font-weight: 400;
+    text-decoration: none;
+    border: 3px solid #D7E5BE;
+}
+.butn:hover{
+    background-color: #92bf46
+}
+.news-ticker .merq{
+    font-size: 18px;
+    line-height: 16px;
+    padding: 25px;
+}
+.news-ticker{
+    background-color: #D7E5BE;
+    padding: 15px;
+}
+
+.section3{
+margin-top: 80px;    
+}
+.mission{
+    margin-top: auto;
+    margin-bottom: auto;
+}
+.para-text{
+    font-family: 'Cormorant Upright', serif;
+    font-size: 22px;
+    width: 80%;
+    font-weight: 500;
+
+}
+@media screen and (max-width: 767px) {
+    .home-div{
+        padding-top: 20px;
+    }
+    .news-img{
+        width: 100%;
+    }
+    .col-md-6 .img-fluid{
+        padding: 20px;
+    }
+}

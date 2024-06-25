@@ -1,0 +1,14 @@
+.ride input{
+    border: 1px solid #D7E5BE;
+    margin-top: 3px;
+    background-color: #F5FFE2;
+}
+.ride select{
+    border: 1px solid #D7E5BE;
+    margin-top: 3px;
+    background-color: #F5FFE2;
+}
+.ride img{
+    box-shadow: none;
+    border-radius: 1px;
+}

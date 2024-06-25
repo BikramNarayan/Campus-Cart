@@ -1,0 +1,170 @@
+footer{
+    background-color: #e3fdb280;
+}
+footer p{
+    margin: 0;
+    color: #07490d;
+    font-weight: 100;
+    font-size: 15px;
+
+}
+
+.green{
+    background-color: #035B0B;
+    
+}
+.green a, .green p{
+    color: white;
+}
+.green p{
+    padding: 20px 30px;
+}
+.links{
+  text-decoration: none;
+}
+.contact-container .icon{
+    border-radius: 0;
+    box-shadow: none;
+    height: 40px;
+    margin: 10px;
+    margin-left: 0;
+}
+.right-col{
+    display: flex;
+    align-items: right;
+    justify-content: right;
+}
+/* Add this CSS in your style sheet or within the head of your HTML */
+.icons {
+    display: flex;
+  }
+  
+  .icon-container {
+    margin-right: 20px; /* Adjust the margin as needed */
+  }
+  .input-group {
+    display: flex;
+    align-items: center;
+  }
+  
+  .input {
+    min-height: 40px;
+    width: 370px;
+    padding: 0 1rem;
+    color: black;
+    font-size: 15px;
+    border: 1px solid #043308;
+    border-radius: 26px;
+    background-color: transparent;
+    box-shadow: none;
+  }
+  
+  .button--submit {
+    min-height: 40px;
+    padding: .5em 1em;
+    border: none;
+    border-radius: 0 26px 26px 0;
+    background-color: #043308;
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background-color .3s ease-in-out;
+  }
+  
+  .button--submit:hover {
+    background-color: #92bf46;
+  }
+  
+  .input:focus, .input:focus-visible {
+    border-color: #043308;
+    outline: none;
+  }
+
+/* Add this CSS in your style sheet or within the head of your HTML */
+
+/* ... Existing styles ... */
+
+.icons {
+  display: flex;
+}
+
+.icon-container {
+  margin-right: 20px; /* Adjust the margin as needed */
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  margin-top: 10px; /* Add margin to separate from the icons */
+}
+.footfoot{
+  display: none;
+}
+.green {
+  background-color: #035B0B;
+  position: relative;
+  text-align: center;
+}
+
+.green a,
+.green p {
+  color: white;
+}
+
+.green p {
+  padding: 20px 30px;
+}
+.green .row{
+  padding: 5px 20px;
+}
+.up-arrow {
+  position: absolute;
+  top: 35%;
+  right: 30px; 
+}
+
+.green .bx-up-arrow-alt{
+  transform: rotate(-45deg);
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+
+  @media screen and (max-width: 767px) {
+    .input {
+        width: auto;
+      }
+      
+      .input-group{
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      .input {
+        width: auto;
+      }
+    .footfoot{
+      display: block;
+    }
+    .green{
+      text-align: left;
+    }
+    .green p{
+      padding: 20px 20px;
+    }
+      .input-group {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      .green .up-arrow {
+        position: absolute;
+        right: 0px; 
+        top: 80%;
+      }
+      .green .bx-up-arrow-alt {
+        top: 20px;
+        border-radius: 50%;
+        border: 1px solid white;
+        transform: rotate(-45deg);
+      }
+  }
+  
