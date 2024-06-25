@@ -2,14 +2,14 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, collection } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD9Al_kkxgoSF-tzrRq_YOXYy975wAlqSM",
-  authDomain: "campuscart-426807.firebaseapp.com",
-  databaseURL: "https://campuscart-426807-default-rtdb.firebaseio.com",
-  projectId: "campuscart-426807",
-  storageBucket: "campuscart-426807.appspot.com",
-  messagingSenderId: "168461417909",
-  appId: "1:168461417909:web:d3db561df8d92c7a2dedfc",
-  measurementId: "G-VTT377SV88",
+  apiKey: process.env.REACT_APP_API_KEY,
+  authDomain: process.env.REACT_APP_AUTH_DOMAIN,
+  databaseURL: process.env.REACT_APP_DATABASE_URL,
+  projectId: process.env.REACT_APP_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_APP_ID,
+  measurementId: process.env.REACT_APP_MEASUREMENT_ID,
 };
 const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
