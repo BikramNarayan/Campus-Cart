@@ -18,7 +18,7 @@ import u2 from "../assets/Untitled (1).jpeg";
 import u3 from "../assets/Untitled (2).jpeg";
 import "../App.css";
 import "../assets/Home.css";
-import hero from "../assets/hero.png";
+import hero from "../assets/hero2.png";
 function Home() {
   return (
     <div>
