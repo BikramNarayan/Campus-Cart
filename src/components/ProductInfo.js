@@ -101,7 +101,7 @@ function ProductInfo({ setCartItems }) {
                     border: "2px solid green",
                   }}
                 >
-                  Hostle: {product.name}
+                  {product.name}
                 </span>
               </h1>
               <br />
@@ -120,7 +120,6 @@ function ProductInfo({ setCartItems }) {
                 </a>
               </p>
               <p className="card-text">Description: {product.description}</p>
-              <p className="card-text">Exchange/Rent/Sell: {product.type}</p>
 
               {isAuthenticated ? (
                 <div className="row g-2">

@@ -13,6 +13,7 @@ import RideSharing from "./components/RideSharing";
 import RideDetails from "./components/RideDetails";
 import About from "./pages/About";
 import ProductInfo from "./components/ProductInfo";
+import CombineOrder from "./pages/Comb_Order";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/buy" element={<Buy />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/combine" element={<CombineOrder />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/ridesharing" element={<RideSharing />} />
           <Route path="/product/:productId" element={<ProductInfo />} />
