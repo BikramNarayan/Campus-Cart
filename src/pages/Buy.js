@@ -2,14 +2,13 @@ import React, { useEffect, useState } from "react";
 import { collection, query, getDocs } from "firebase/firestore";
 import { firestore } from "../firebase";
 import "../App.css";
-import group69 from "../assets/Group69.png";
 import buyy from "../assets/Untitled (1).jpeg";
 import { Link } from "react-router-dom";
 
 function Buy() {
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [productsPerPage] = useState(12);
+  const [productsPerPage] = useState(4); // Show 4 products per page
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -29,15 +28,6 @@ function Buy() {
     indexOfFirstProduct,
     indexOfLastProduct
   );
-
-  const pageNumbers = [];
-  for (
-    let i = 1;
-    i <= Math.ceil(filteredProducts.length / productsPerPage);
-    i++
-  ) {
-    pageNumbers.push(i);
-  }
 
   const fetchProducts = async () => {
     const productsCollection = collection(firestore, "products");
@@ -62,22 +52,12 @@ function Buy() {
     fetchProducts();
   }, []);
 
-  // const addToCart = async (product) => {
-  //   try {
-  //     if (!isAuthenticated) {
-  //       console.error("User not authenticated");
-  //       return;
-  //     }
-
-  //     const itemToAdd = { ...product, userId: user.sub, imageUrl: product.imageUrl }; // Include imageUrl property
-  //     await addDoc(cartCollectionRef, itemToAdd);
-  //     alert(`Added ${product.name} to your cart.`);
-  //   } catch (error) {
-  //     console.error("Error adding item to cart:", error);
-  //   }
-  // };
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const paginate = (pageNumber) => {
+    if (pageNumber < 1) return;
+    if (pageNumber > Math.ceil(filteredProducts.length / productsPerPage))
+      return;
+    setCurrentPage(pageNumber);
+  };
 
   return (
     <div>
@@ -161,16 +141,6 @@ function Buy() {
                           Buy Now
                         </Link>
                       </div>
-                      {/* {isAuthenticated ? (
-                    <button
-                      className="btn btn-success"
-                      onClick={() => addToCart(product)}
-                    >
-                      Add to Cart
-                    </button>
-                  ) : (
-                    <p className="card-text">Login to add to cart</p>
-                  )} */}
                     </div>
                   </div>
                 </Link>
@@ -179,23 +149,15 @@ function Buy() {
           </div>
         )}
         <div className="text-center my-3 mb-5">
-          <button className="butn mr-3" onClick={() => paginate(1)}>
+          <button
+            className="butn mr-3"
+            onClick={() => paginate(currentPage - 1)}
+          >
             Previous
           </button>
-          {pageNumbers.map((number) => (
-            <button
-              key={number}
-              className={`button1 ${
-                currentPage === number ? "btn-success" : "btn-secondary"
-              } mx-2`}
-              onClick={() => paginate(number)}
-            >
-              {number}
-            </button>
-          ))}
           <button
             className="butn ml-3"
-            onClick={() => paginate(pageNumbers.length)}
+            onClick={() => paginate(currentPage + 1)}
           >
             Next
           </button>

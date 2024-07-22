@@ -189,7 +189,10 @@ const CombineOrderForm = () => {
 const CombineOrderList = () => {
   const [orderListings, setOrderListings] = useState([]);
   const [brandNameFilter, setBrandNameFilter] = useState("");
-
+  const [perPageLimit] = useState(3);
+  const [currentPage, setCurrentPage] = useState(1);
+  let end = currentPage * perPageLimit;
+  let start = end - perPageLimit;
   const fetchOrderListings = async () => {
     const orderCollection = collection(firestore, "comb_order");
 
@@ -245,7 +248,16 @@ const CombineOrderList = () => {
   };
 
   const filteredListings = applyFilters();
-
+  // console.log(start, end);
+  const to_show_product = filteredListings.slice(start, end);
+  const paginate = (pagenNumber) => {
+    const k = Math.ceil(filteredListings.length / perPageLimit);
+    console.log(k);
+    if (pagenNumber > Math.ceil(filteredListings.length / perPageLimit)) return;
+    if (pagenNumber < 1) return;
+    setCurrentPage(pagenNumber);
+    console.log(start, end);
+  };
   return (
     <div className="container existing-order">
       <hr />
@@ -262,7 +274,7 @@ const CombineOrderList = () => {
       </div>
 
       <div className="row row-cols-1 row-cols-md-3 g-3">
-        {filteredListings.map((listing) => (
+        {to_show_product.map((listing) => (
           <div key={listing.id} className="col mb-4">
             <div className="card card1" style={{ width: "98%" }}>
               <img
@@ -286,6 +298,14 @@ const CombineOrderList = () => {
             </div>
           </div>
         ))}
+      </div>
+      <div className="text-center my-3 mb-5">
+        <button className="butn mr-3" onClick={() => paginate(currentPage - 1)}>
+          Previous
+        </button>
+        <button className="butn ml-3" onClick={() => paginate(currentPage + 1)}>
+          Next
+        </button>
       </div>
     </div>
   );
