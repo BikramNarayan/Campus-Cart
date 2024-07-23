@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { collection, addDoc } from "firebase/firestore";
 import { firestore } from "../firebase";
 import "../App.css";
-import girl from "../assets/girl.png";
 import sell2 from "../assets/sell2.jpg";
 import { useAuth0 } from "@auth0/auth0-react";
+
 function Sell() {
-  const { isAuthenticated } = useAuth0();
+  const { isAuthenticated, user } = useAuth0(); // Correctly call useAuth0()
   const [loading, setLoading] = useState(false);
   const [productName, setProductName] = useState("");
   const [productPrice, setProductPrice] = useState("");
@@ -21,16 +21,15 @@ function Sell() {
   const [itemUsedForHowLong, setItemUsedForHowLong] = useState("");
   const [productCondition, setProductCondition] = useState("");
 
-  //state for Rent
+  // State for Rent
   const [rentDuration, setRentDuration] = useState("1m");
   const [rentCost, setRentCost] = useState("");
-
+  // console.log(user.email);
   const handleProductSubmit = async (e) => {
     if (!isAuthenticated) {
       // Display a message or a login prompt if the user is not authenticated
       return;
     }
-
     e.preventDefault();
     setLoading(true);
     const product = {
@@ -42,6 +41,7 @@ function Sell() {
       contactNumber: sellerContactNumber,
       sellerNm: sellerName,
       type: productType,
+      email: user.email,
       exchangeFor,
       exchangeOrRent,
       itemUsedForHowLong,
@@ -80,6 +80,7 @@ function Sell() {
       setLoading(false);
     }
   };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -121,7 +122,7 @@ function Sell() {
                   >
                     <option value="Sell">Sell</option>
                     {/* <option value="Trade">Trade</option>
-                  <option value="Rent">Rent</option> */}
+                    <option value="Rent">Rent</option> */}
                   </select>
                 </div>
                 <div className="mb-3">

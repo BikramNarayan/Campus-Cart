@@ -14,6 +14,7 @@ import RideDetails from "./components/RideDetails";
 import About from "./pages/About";
 import ProductInfo from "./components/ProductInfo";
 import CombineOrder from "./pages/Comb_Order";
+import Your_blogs from "./pages/Your_blogs";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="/ridesharing" element={<RideSharing />} />
           <Route path="/product/:productId" element={<ProductInfo />} />
           <Route path="/ridedetails/:id" element={<RideDetails />} />
+          <Route path="/yourblogs" element={<Your_blogs />} />
         </Routes>
         <Contact />
       </Router>

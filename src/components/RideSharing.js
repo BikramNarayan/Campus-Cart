@@ -55,6 +55,7 @@ const RideSharingForm = () => {
       endPoint,
       date,
       time,
+      email: user.email,
       passengerCount,
       type,
       userId: user.sub, // Include the user's ID

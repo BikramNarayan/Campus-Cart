@@ -169,6 +169,15 @@ const Navbar = () => {
                       Combined Orders<i className="bx bx-up-arrow-alt"></i>
                     </Link>
                   </li>
+                  <li>
+                    <Link
+                      className="dropdown-item"
+                      to="/yourblogs"
+                      onClick={handleLinkClick}
+                    >
+                      Your Blogs<i className="bx bx-up-arrow-alt"></i>
+                    </Link>
+                  </li>
                 </ul>
               </div>
             </li>

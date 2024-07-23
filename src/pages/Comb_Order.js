@@ -43,6 +43,7 @@ const CombineOrderForm = () => {
       amountRequired,
       phoneNumber,
       userId: user.sub, // Include the user's ID
+      email: user.email,
     };
 
     try {
