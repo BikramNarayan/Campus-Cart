@@ -26,3 +26,4 @@ temp/
 .env.production.local
 
 # Parcel-bundler cache (if using Parcel)
+.codegpt

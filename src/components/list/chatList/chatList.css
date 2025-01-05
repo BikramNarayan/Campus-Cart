@@ -1,0 +1,85 @@
+.chatList::-webkit-scrollbar {
+    width: 12px;               /* width of the entire scrollbar */
+  }
+  
+  .chatList::-webkit-scrollbar-track {
+    background: rgb(128, 126, 124);        /* color of the tracking area */
+  }
+  
+  .chatList::-webkit-scrollbar-thumb {
+    background-color: rgb(51, 48, 48);    /* color of the scroll thumb */
+    border-radius: 20px;       /* roundness of the scroll thumb */
+    border: 3px solid rgb(46, 45, 45);  /* creates padding around scroll thumb */
+  }
+.chatList{
+    
+  /* overflow: scroll; */
+  overflow-y: hidden;
+  .search{
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 10px;
+    /* img{
+        width: 10px;
+        height: 10px;
+    } */
+}
+.searchBar{
+    flex: 1;
+    background-color: rgb(186 246 101 / 70%);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    gap: 10px;
+    input{
+        background-color: transparent;
+        border: none;
+        outline: none;
+        color: white;
+        flex: 1;
+        font-size: large;
+    }
+    img{
+        width: 20px;
+        height: 20px;
+    }
+   
+}
+.add{
+    background-color: rgb(186 246 101 / 70%);
+    padding: 10px;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.item{
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    border-bottom: 1px solid rgb(168, 153, 153);
+    cursor: pointer;
+    img{
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+    .texts{
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        span{
+            font-weight: 500;
+
+        }
+        p{
+            font-weight: 300;
+            font-size: 14px;
+        }
+    }
+}
+  
+}

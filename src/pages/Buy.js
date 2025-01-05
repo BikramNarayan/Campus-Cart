@@ -1,23 +1,44 @@
 import React, { useEffect, useState } from "react";
-import { collection, query, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  getDocs,
+  serverTimestamp,
+  setDoc,
+  doc,
+  updateDoc,
+  arrayUnion,
+  getDoc,
+  where,
+} from "firebase/firestore";
 import { firestore } from "../firebase";
 import "../App.css";
 import buyy from "../assets/Untitled (1).jpeg";
 import { Link } from "react-router-dom";
+import useReceiverStore from "../lib/receiverStore";
+import useChatStore from "../lib/chatToggleStore";
+import { useAuth0 } from "@auth0/auth0-react";
 
 function Buy() {
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [productsPerPage] = useState(4); // Show 4 products per page
+  const [productsPerPage] = useState(4);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Correctly use the Zustand hooks at the top level
+  // const updateReceiver = useUpdateReceiver();
+  // const receiver = useReceiver();
+  const { receiver, updateReceiver } = useReceiverStore();
+  const { openToggle } = useChatStore();
+  const { user } = useAuth0();
 
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
 
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
-    setCurrentPage(1); // Reset page number when performing a new search
+    setCurrentPage(1);
   };
 
   const filteredProducts = products.filter((product) =>
@@ -30,8 +51,12 @@ function Buy() {
   );
 
   const fetchProducts = async () => {
+    if (!user?.sub) return;
     const productsCollection = collection(firestore, "products");
-    const productsQuery = query(productsCollection);
+    const productsQuery = query(
+      productsCollection,
+      where("userId", "!=", user?.sub)
+    );
 
     try {
       const querySnapshot = await getDocs(productsQuery);
@@ -40,7 +65,7 @@ function Buy() {
       querySnapshot.forEach((doc) => {
         productsData.push({ id: doc.id, ...doc.data() });
       });
-
+      // console.log(productsData);
       setProducts(productsData);
       setLoading(false);
     } catch (error) {
@@ -49,14 +74,76 @@ function Buy() {
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (user) {
+      fetchProducts();
+    }
+  }, [user]);
 
   const paginate = (pageNumber) => {
     if (pageNumber < 1) return;
     if (pageNumber > Math.ceil(filteredProducts.length / productsPerPage))
       return;
     setCurrentPage(pageNumber);
+  };
+
+  const handleMessage = async (userId) => {
+    console.log("id of seller " + userId);
+    updateReceiver(userId);
+
+    const chatRef = collection(firestore, "chats");
+    const userChatRef = collection(firestore, "userchats");
+
+    try {
+      // Create a new chat document in the "chats" collection
+      const newChatRef = doc(chatRef); // Generates a unique ID
+      await setDoc(newChatRef, {
+        createdAt: serverTimestamp(),
+        message: [],
+      });
+      console.log("New chat ID:", newChatRef.id);
+
+      // Ensure userChat document exists for `user.sub` (current user)
+      const userChatDoc = doc(userChatRef, user.sub); // Reference to user's userchats document
+      const userChatSnap = await getDoc(userChatDoc); // Check if it exists
+      if (!userChatSnap.exists()) {
+        // Create the document if it doesn't exist
+        await setDoc(userChatDoc, { chats: [] });
+      }
+
+      // Ensure userChat document exists for `receiver`
+      const receiverChatDoc = doc(userChatRef, receiver); // Reference to receiver's userchats document
+      const receiverChatSnap = await getDoc(receiverChatDoc); // Check if it exists
+      if (!receiverChatSnap.exists()) {
+        // Create the document if it doesn't exist
+        await setDoc(receiverChatDoc, { chats: [] });
+      }
+
+      // Add the new chat to the `chats` array for both users
+      const chatData = {
+        chatId: newChatRef.id,
+        lastMessage: "",
+        receiverId: receiver,
+        updatedAt: Date.now(),
+      };
+
+      await updateDoc(userChatDoc, {
+        chats: arrayUnion(chatData),
+      });
+
+      await updateDoc(receiverChatDoc, {
+        chats: arrayUnion({
+          chatId: newChatRef.id,
+          lastMessage: "",
+          receiverId: user.sub,
+          updatedAt: Date.now(),
+        }),
+      });
+    } catch (error) {
+      console.error("Error in handleMessage:", error);
+    }
+
+    openToggle();
+    console.log("current receiver " + receiver);
   };
 
   return (
@@ -77,8 +164,8 @@ function Buy() {
               List an Item <i className="bx bx-up-arrow-alt"></i>
             </Link>
           </div>
-          <div className="col-md-6 alignMid ">
-            <img className=" img-fluid" src={buyy} alt="buy page" />
+          <div className="col-md-6 alignMid">
+            <img className="img-fluid" src={buyy} alt="buy page" />
           </div>
         </div>
 
@@ -110,40 +197,37 @@ function Buy() {
           <div className="row row-cols-2 row-cols-md-2 row-cols-lg-4 g-0">
             {currentProducts.map((product) => (
               <div key={product.id} className="col mb-4">
-                <Link
-                  to={`/product/${product.id}`}
-                  className="text-decoration-none"
-                >
-                  <div className="card card1">
-                    <img
-                      src={product.imageUrl}
-                      className="card-img-top"
-                      alt={product.name}
-                    />
-                    <div className="card-body" style={{ paddingBottom: 0 }}>
-                      <h5 className="card-title">
-                        <strong>{product.name}</strong>
-                      </h5>
-                      <p className="card-text">
-                        {" "}
-                        <strong>{product.sellerNm} </strong>
-                      </p>
-                      <p className="card-text">
-                        {" "}
-                        <strong>Hostle: </strong> {product.location}
-                      </p>
-                      <h5 className="">Rs {product.price.toFixed(0)}</h5>
-                      <div className="col-lg-6">
-                        <Link
-                          to={`/product/${product.id}`}
-                          className="btn border-success border-2 btn-success w-100"
-                        >
-                          Buy Now
-                        </Link>
-                      </div>
+                <div className="card card1">
+                  <img
+                    src={product.imageUrl}
+                    className="card-img-top"
+                    alt={product.name}
+                    loading="lazy"
+                  />
+                  <div className="card-body" style={{ paddingBottom: 0 }}>
+                    <h5 className="card-title">
+                      <strong>{product.name}</strong>
+                    </h5>
+                    <p className="card-text">
+                      <strong>{product.sellerNm}</strong>
+                    </p>
+                    <p className="card-text">
+                      <strong>Hostle: </strong> {product.location}
+                    </p>
+                    <h5 className="">Rs {product.price.toFixed(0)}</h5>
+                    <button onClick={() => handleMessage(product.userId)}>
+                      whatsapp
+                    </button>
+                    <div className="col-lg-6">
+                      <Link
+                        to={`/product/${product.id}`}
+                        className="btn border-success border-2 btn-success w-100"
+                      >
+                        Buy Now
+                      </Link>
                     </div>
                   </div>
-                </Link>
+                </div>
               </div>
             ))}
           </div>

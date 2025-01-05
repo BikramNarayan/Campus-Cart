@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
 import { firestore } from "../firebase";
 import { Link } from "react-router-dom";
 import "../assets/Ride.css";
@@ -289,12 +289,15 @@ const RideSharingList = () => {
   const [rideListings, setRideListings] = useState([]);
   const [startingPointFilter, setStartingPointFilter] = useState("");
   const [endPointFilter, setEndPointFilter] = useState("");
-
+  const { user } = useAuth0();
   const fetchRideListings = async () => {
     const rideSharingCollection = collection(firestore, "ride-sharing");
+    const q = query(rideSharingCollection, where("userId", "!=", user?.sub));
 
     try {
-      const querySnapshot = await getDocs(rideSharingCollection);
+      // console.log(user.sub);
+      const querySnapshot = await getDocs(q);
+      // console.log(q);
       const rideData = [];
 
       querySnapshot.forEach((doc) => {
@@ -308,8 +311,8 @@ const RideSharingList = () => {
   };
 
   useEffect(() => {
-    fetchRideListings();
-  }, []);
+    if (user) fetchRideListings();
+  }, [user]);
 
   const applyFilters = () => {
     let filteredListings = [...rideListings];

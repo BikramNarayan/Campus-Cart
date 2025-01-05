@@ -34,30 +34,6 @@ function ProductInfo({ setCartItems }) {
     fetchProduct();
   }, [productId]);
 
-  const addToCart = async () => {
-    try {
-      if (!isAuthenticated) {
-        console.error("User not authenticated");
-        return;
-      }
-
-      if (!product) {
-        console.error("Product not found");
-        return;
-      }
-      setLoading(true);
-      await addDoc(cartCollectionRef, { ...product, userId: user.sub });
-      alert(`Added ${product.name} to your cart.`);
-      setLoading(false);
-      setCartItems((prevItems) => [
-        ...prevItems,
-        { ...product, userId: user.sub },
-      ]);
-    } catch (error) {
-      console.error("Error adding item to cart:", error);
-    }
-  };
-
   if (product === null) {
     return (
       // spinner
@@ -78,6 +54,7 @@ function ProductInfo({ setCartItems }) {
             src={product.imageUrl}
             className="img-fluid"
             alt={product.name}
+            loading="lazy"
             style={{ aspectRatio: "1/1" }}
           />
         </div>

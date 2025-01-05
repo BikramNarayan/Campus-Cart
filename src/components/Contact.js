@@ -19,21 +19,6 @@ function Contact() {
               <i class="bx bxl-apple bx-lg" style={{ rotate: "none" }}></i>
               <br /> <br />
               <br />
-              {/* <p className="mb-2" style={{fontWeight:"400"}}>Subscribe to our Newsletter</p>
-              <div className="input-group">
-                <input
-                  type="email"
-                  className="input"
-                  id="Email"
-                  name="Email"
-                  placeholder="yourname@email.com"
-                />
-                <input
-                  className="button--submit"
-                  value="Subscribe"
-                  type="submit"
-                />
-              </div> */}
             </div>
 
             <div className="col-md-6 right-col">

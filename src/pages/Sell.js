@@ -42,6 +42,7 @@ function Sell() {
       sellerNm: sellerName,
       type: productType,
       email: user.email,
+      userId: user.sub,
       exchangeFor,
       exchangeOrRent,
       itemUsedForHowLong,

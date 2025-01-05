@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import logo from "../assets/logo.png";
 import { faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
 import "../assets/Navbar.css";
+import Dialog from "../pages/Dialogg";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { firestore } from "../firebase";
 
 const LoginButton = () => {
   const { loginWithRedirect } = useAuth0();
-
   return (
     <Link
       style={{ padding: "10px 35px", borderRadius: 25 }}
@@ -46,6 +48,52 @@ const Navbar = () => {
   const { isAuthenticated, user } = useAuth0();
   const [navbarExpanded, setNavbarExpanded] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State to manage dropdown menu visibility
+  useEffect(() => {
+    const checkAndCreateUser = async () => {
+      // console.log(user);
+      // console.log("entered");
+
+      if (isAuthenticated && user) {
+        try {
+          const userInfoRef = doc(firestore, "user", user?.sub);
+          const userInfo = await getDoc(userInfoRef);
+
+          if (!userInfo.exists()) {
+            await setDoc(userInfoRef, {
+              name: user.name || user.nickname,
+              picture: user.picture,
+              sub: user.sub,
+            });
+            console.log("New user created in database");
+          } else {
+            console.log("User already exists in database");
+          }
+        } catch (error) {
+          console.error("Error checking/creating user:", error);
+        }
+      }
+      //   try {
+      //     const userChatsRef = doc(firestore, "userChats", user?.sub);
+      //     const userChatsInfo = await getDoc(userChatsRef);
+
+      //     if (!userChatsInfo.exists()) {
+      //       await setDoc(userChatsRef, {
+      //         name: user.name || user.nickname,
+      //         picture: user.picture,
+      //         sub: user.sub,
+      //       });
+      //       console.log("New user created in database");
+      //     } else {
+      //       console.log("User already exists in database");
+      //     }
+      //   } catch (error) {
+      //     console.error("Error checking/creating user:", error);
+      //   }
+      // }
+    };
+
+    checkAndCreateUser();
+  }, [user]);
 
   const handleNavbarToggle = () => {
     setNavbarExpanded(!navbarExpanded);
@@ -186,9 +234,16 @@ const Navbar = () => {
             <li className="nav-item d-flex">
               {isAuthenticated && (
                 <Link className="nav-link m-0" onClick={handleLinkClick}>
+                  <Dialog />
                   {user?.nickname || user?.name || "User"}
                   <img
-                    style={{ height: 30, borderRadius: "50%", paddingLeft: 8 }}
+                    style={{
+                      width: "30px",
+                      height: "30px",
+                      objectFit: "cover",
+                      borderRadius: "50%",
+                      paddingLeft: 8,
+                    }}
                     src={user.picture}
                     alt={user.name}
                   />

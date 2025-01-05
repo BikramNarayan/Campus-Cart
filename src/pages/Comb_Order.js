@@ -43,9 +43,9 @@ const CombineOrderForm = () => {
       amountRequired,
       phoneNumber,
       userId: user.sub, // Include the user's ID
-      email: user.email,
+      // email: user.email,
     };
-
+    console.log(order);
     try {
       // Add the order to Firestore
       const docRef = await addDoc(collection(firestore, "comb_order"), order);
