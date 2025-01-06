@@ -26,10 +26,14 @@
         }
     }
     .center{
-          flex: 3;
+          flex: 4;
     }
     .bottom{
         display: flex;
+        position: absolute; /* Position at bottom */
+        bottom: 0;
+        left: 60px;
+        right: 0;
         padding: 15px;
         align-items: center;
         gap: 25px;
@@ -117,7 +121,7 @@
         .texts{
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 0px;
             img{
                 align-self: flex-end;
                 width: 60%;

@@ -10,6 +10,9 @@ import Chat from "../components/chat/Chat";
 import Userinfo from "../components/list/userInfo/Userinfo";
 import { useAuth0 } from "@auth0/auth0-react";
 import useChatStore from "../lib/chatToggleStore";
+import { useState } from "react";
+import { useEffect } from "react";
+import chatIdStore from "../lib/chatIdStore";
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiPaper-root": {
     width: "80vw",
@@ -125,8 +128,33 @@ const IconsSection = styled("div")({
 export default function Dialogg() {
   const { user, isAuthenticated, isLoading } = useAuth0();
   // const [open, setOpen] = React.useState(false);
+  const {
+    chatId,
+    chatIdName,
+    chatIdPhoto,
+    updatechatId,
+    updateChatIdName,
+    updateChatIdPhoto,
+  } = chatIdStore();
 
   const { chatToggle, openToggle, closeToggle } = useChatStore();
+  const [chatDetails, setChatDetails] = useState({
+    id: null,
+    name: "",
+    photo: "",
+  });
+
+  useEffect(() => {
+    setChatDetails({
+      id: chatId,
+      name: chatIdName || "Unknown User",
+      photo: chatIdPhoto || "./avatar.png",
+    });
+  }, []);
+
+  useEffect(() => {
+    console.log("hehehe " + chatId);
+  }, [chatId]);
 
   const handleClickOpen = () => {
     openToggle();
@@ -185,20 +213,22 @@ export default function Dialogg() {
 
           <RightSection>
             <FixedHeader>
-              <TopHeader>
-                <UserSection>
-                  <img src="./avatar.png" alt="" />
-                  <div className="texts">
-                    <span>Narayan</span>
-                    <p>Online</p>
-                  </div>
-                </UserSection>
-                <IconsSection>
-                  <img src="./phone.png" alt="" />
-                  <img src="./video.png" alt="" />
-                  <img src="./info.png" alt="" />
-                </IconsSection>
-              </TopHeader>
+              {chatId && (
+                <TopHeader>
+                  <UserSection>
+                    <img src={chatIdPhoto} alt="" />
+                    <div className="texts">
+                      <span>{chatIdName}</span>
+                      <p>Online</p>
+                    </div>
+                  </UserSection>
+                  <IconsSection>
+                    <img src="./phone.png" alt="" />
+                    <img src="./video.png" alt="" />
+                    <img src="./info.png" alt="" />
+                  </IconsSection>
+                </TopHeader>
+              )}
             </FixedHeader>
             <ScrollableWrapper>
               <Chat />

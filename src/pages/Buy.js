@@ -10,6 +10,7 @@ import {
   arrayUnion,
   getDoc,
   where,
+  arrayRemove,
 } from "firebase/firestore";
 import { firestore } from "../firebase";
 import "../App.css";
@@ -25,6 +26,7 @@ function Buy() {
   const [productsPerPage] = useState(4);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
 
   // Correctly use the Zustand hooks at the top level
   // const updateReceiver = useUpdateReceiver();
@@ -86,66 +88,138 @@ function Buy() {
     setCurrentPage(pageNumber);
   };
 
-  const handleMessage = async (userId) => {
-    console.log("id of seller " + userId);
-    updateReceiver(userId);
-
+  const handleMessage = async (p) => {
+    console.log("id of seller " + p.userId);
+    updateReceiver(p.userId);
     const chatRef = collection(firestore, "chats");
     const userChatRef = collection(firestore, "userchats");
-
+    setIsSending(true);
     try {
-      // Create a new chat document in the "chats" collection
-      const newChatRef = doc(chatRef); // Generates a unique ID
-      await setDoc(newChatRef, {
-        createdAt: serverTimestamp(),
-        message: [],
-      });
-      console.log("New chat ID:", newChatRef.id);
+      // Get current user's chats
+      const userChatDoc = doc(userChatRef, user.sub);
+      const userChatSnap = await getDoc(userChatDoc);
 
-      // Ensure userChat document exists for `user.sub` (current user)
-      const userChatDoc = doc(userChatRef, user.sub); // Reference to user's userchats document
-      const userChatSnap = await getDoc(userChatDoc); // Check if it exists
-      if (!userChatSnap.exists()) {
-        // Create the document if it doesn't exist
-        await setDoc(userChatDoc, { chats: [] });
+      // Get receiver's chats
+      const receiverChatDoc = doc(userChatRef, p.userId);
+      const receiverChatSnap = await getDoc(receiverChatDoc);
+
+      // Check if a chat already exists between these users
+      let existingChatId = null;
+      let userChats;
+      if (userChatSnap.exists()) {
+        userChats = userChatSnap.data().chats || [];
+        const existingChat = userChats.find(
+          (chat) => chat.receiverId === p.userId
+        );
+        if (existingChat) {
+          existingChatId = existingChat.chatId;
+        }
       }
 
-      // Ensure userChat document exists for `receiver`
-      const receiverChatDoc = doc(userChatRef, receiver); // Reference to receiver's userchats document
-      const receiverChatSnap = await getDoc(receiverChatDoc); // Check if it exists
-      if (!receiverChatSnap.exists()) {
-        // Create the document if it doesn't exist
-        await setDoc(receiverChatDoc, { chats: [] });
-      }
+      const temp_message = `Hi ${p.sellerNm}, I'm interested in purchasing your ${p.name}. Would you be available to discuss the details?`;
 
-      // Add the new chat to the `chats` array for both users
-      const chatData = {
-        chatId: newChatRef.id,
-        lastMessage: "",
-        receiverId: receiver,
-        updatedAt: Date.now(),
-      };
+      if (existingChatId) {
+        // Get the existing chat document
+        const existingChatDoc = doc(chatRef, existingChatId);
 
-      await updateDoc(userChatDoc, {
-        chats: arrayUnion(chatData),
-      });
+        // Add new message to the messages array
+        await updateDoc(existingChatDoc, {
+          message: arrayUnion({
+            sender: user.sub,
+            text: temp_message,
+            timestamp: Date.now(),
+          }),
+        });
 
-      await updateDoc(receiverChatDoc, {
-        chats: arrayUnion({
-          chatId: newChatRef.id,
-          lastMessage: "",
-          receiverId: user.sub,
+        // Update last message and timestamp in userchats for both users
+        const chatData = {
+          lastMessage: temp_message,
           updatedAt: Date.now(),
-        }),
-      });
+        };
+
+        // Update current user's chat
+        await updateDoc(userChatDoc, {
+          chats: arrayRemove(
+            userChats.find((chat) => chat.chatId === existingChatId)
+          ),
+        });
+        await updateDoc(userChatDoc, {
+          chats: arrayUnion({
+            chatId: existingChatId,
+            lastMessage: temp_message,
+            receiverId: p.userId,
+            updatedAt: chatData.updatedAt,
+          }),
+        });
+
+        // Update receiver's chat
+        if (receiverChatSnap.exists()) {
+          const receiverChats = receiverChatSnap.data().chats || [];
+          await updateDoc(receiverChatDoc, {
+            chats: arrayRemove(
+              receiverChats.find((chat) => chat.chatId === existingChatId)
+            ),
+          });
+          await updateDoc(receiverChatDoc, {
+            chats: arrayUnion({
+              chatId: existingChatId,
+              lastMessage: temp_message,
+              receiverId: user.sub,
+              updatedAt: chatData.updatedAt,
+            }),
+          });
+        }
+      } else {
+        // Create new chat if none exists
+        const newChatRef = doc(chatRef);
+        await setDoc(newChatRef, {
+          createdAt: serverTimestamp(),
+          message: [
+            {
+              sender: user.sub,
+              text: temp_message,
+              timestamp: Date.now(),
+            },
+          ],
+        });
+
+        // Initialize userChat documents if they don't exist
+        if (!userChatSnap.exists()) {
+          await setDoc(userChatDoc, { chats: [] });
+        }
+        if (!receiverChatSnap.exists()) {
+          await setDoc(receiverChatDoc, { chats: [] });
+        }
+
+        // Add new chat to both users
+        const chatData = {
+          chatId: newChatRef.id,
+          lastMessage: temp_message,
+          receiverId: p.userId,
+          updatedAt: Date.now(),
+        };
+
+        await updateDoc(userChatDoc, {
+          chats: arrayUnion(chatData),
+        });
+
+        await updateDoc(receiverChatDoc, {
+          chats: arrayUnion({
+            chatId: newChatRef.id,
+            lastMessage: temp_message,
+            receiverId: user.sub,
+            updatedAt: Date.now(),
+          }),
+        });
+      }
+      setIsSending(false);
+      openToggle();
+      console.log("current seller id " + p.userId);
     } catch (error) {
+      setIsSending(false);
       console.error("Error in handleMessage:", error);
     }
-
-    openToggle();
-    console.log("current receiver " + receiver);
   };
-
   return (
     <div>
       <div className="container">
@@ -215,17 +289,21 @@ function Buy() {
                       <strong>Hostle: </strong> {product.location}
                     </p>
                     <h5 className="">Rs {product.price.toFixed(0)}</h5>
-                    <button onClick={() => handleMessage(product.userId)}>
-                      whatsapp
-                    </button>
+
                     <div className="col-lg-6">
                       <Link
                         to={`/product/${product.id}`}
                         className="btn border-success border-2 btn-success w-100"
                       >
-                        Buy Now
+                        More
                       </Link>
                     </div>
+                    <button
+                      className="btn border-success border-2 btn-success "
+                      onClick={() => handleMessage(product)}
+                    >
+                      {isSending ? "Sending..." : "Chat"}
+                    </button>
                   </div>
                 </div>
               </div>

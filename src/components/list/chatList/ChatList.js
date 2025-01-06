@@ -3,11 +3,20 @@ import "./chatList.css";
 import React, { useEffect, useState } from "react";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { firestore } from "../../../firebase";
+import chatIdStore from "../../../lib/chatIdStore";
+import useReceiverStore from "../../../lib/receiverStore";
 const Chatlist = () => {
   const [add, setAdd] = useState(true);
   const { user } = useAuth0();
   const [chats, setChats] = useState([]);
-
+  const { updateReceiver } = useReceiverStore();
+  const {
+    chatId,
+    chatIdPhoto,
+    updatechatId,
+    updateChatIdName,
+    updateChatIdPhoto,
+  } = chatIdStore();
   useEffect(() => {
     const unsub = onSnapshot(
       doc(firestore, "userchats", user.sub),
@@ -29,6 +38,18 @@ const Chatlist = () => {
     };
   }, [user.sub]);
   // console.log("chats " + chats);
+
+  const handleClick = (e) => {
+    updatechatId(e.chatId);
+    // console.log("heoo");
+    // console.log(chatId);
+    updateReceiver(e.receiverId);
+    updateChatIdName(e.user.name);
+    updateChatIdPhoto(e.user.picture);
+    console.log(e);
+    // console.log("chatIdPhoto " + chatIdPhoto);
+    // console.log(e.user.picture);
+  };
   return (
     <div className="chatList">
       <div className="search">
@@ -45,11 +66,20 @@ const Chatlist = () => {
       </div>
       {chats.map((e) => {
         return (
-          <div className="item" key={e.chatId}>
+          <div className="item" key={e.chatId} onClick={() => handleClick(e)}>
             <img src={e.user.picture || "./avatar.png"} alt="" />
             <div className="texts">
               <span>{e.user.name}</span>
-              <p>{e.lastMessage}</p>
+              <p>
+                {e.lastMessage.length > 26
+                  ? `${e.lastMessage.split(" ").reduce((result, word) => {
+                      if (result.length + word.length <= 23) {
+                        return result.length === 0 ? word : `${result} ${word}`;
+                      }
+                      return result;
+                    }, "")}...`
+                  : e.lastMessage}
+              </p>
             </div>
           </div>
         );
