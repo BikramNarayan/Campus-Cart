@@ -24,6 +24,7 @@
                 color: rgb(75, 73, 73);
             }
         }
+        
     }
     .center{
           flex: 4;
@@ -42,7 +43,7 @@
             border: none;
             outline: none;
             color: white;
-            max-width: 500px;
+            max-width: 55%;
             flex: 1;
             padding: 10px;
             border-radius: 20px;
@@ -138,4 +139,58 @@
         }
     }
 }
+}
+
+@media only screen and (max-width: 600px){
+    .texts{
+        span{
+            font-weight: 200;
+            font-size: 10px;
+            
+        }
+        p{
+            font-size: 13px;
+            font-weight: 500;
+            color: rgb(75, 73, 73);
+        }
+    }
+    .chat{
+    .bottom{
+        left: 0px;
+        padding: 10px;
+        gap: 10px;
+        .input-message{
+            background-color:  rgb(186 246 101 / 70%);
+            border: none;
+            outline: none;
+            color: white;
+            max-width: 55%;
+            flex: 1;
+            padding: 5px;
+            border-radius: 20px;
+            font-size: medium;
+        }
+
+    
+    .emoji{
+        img{
+            height: 25px;
+            width: 25px;
+        }
+        .emojiDialog{
+           position: absolute;
+           right: -10;
+           bottom: 40px;
+        }
+    }
+    .send{
+        height: 25px;
+        width: 62px;
+        border-radius: 46%;
+        font-size: medium;
+        cursor: pointer;
+    }
+    }
+}
+    
 }

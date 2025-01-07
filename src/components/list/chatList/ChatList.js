@@ -46,7 +46,7 @@ const Chatlist = () => {
     updateReceiver(e.receiverId);
     updateChatIdName(e.user.name);
     updateChatIdPhoto(e.user.picture);
-    console.log(e);
+    // console.log(e);
     // console.log("chatIdPhoto " + chatIdPhoto);
     // console.log(e.user.picture);
   };

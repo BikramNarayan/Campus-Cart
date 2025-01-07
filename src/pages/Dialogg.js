@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState, useEffect } from "react";
 import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
 import Dialog from "@mui/material/Dialog";
@@ -10,9 +10,10 @@ import Chat from "../components/chat/Chat";
 import Userinfo from "../components/list/userInfo/Userinfo";
 import { useAuth0 } from "@auth0/auth0-react";
 import useChatStore from "../lib/chatToggleStore";
-import { useState } from "react";
-import { useEffect } from "react";
 import chatIdStore from "../lib/chatIdStore";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiPaper-root": {
     width: "80vw",
@@ -26,12 +27,6 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     backdropFilter: "blur(7.6px)",
     WebkitBackdropFilter: "blur(7.6px)", // Correct vendor prefix
     border: "1px solid rgba(142, 194, 139, 0.31)",
-  },
-  "& .MuiDialogContent-root": {
-    padding: theme.spacing(2),
-  },
-  "& .MuiDialogActions-root": {
-    padding: theme.spacing(1),
   },
 }));
 
@@ -48,13 +43,13 @@ const LeftSection = styled("div")({
   position: "relative",
 });
 
-const RightSection = styled("div")({
-  display: "flex",
+const RightSection = styled("div")(({ showChat }) => ({
+  display: showChat ? "flex" : "none",
   flexDirection: "column",
   height: "100%",
   position: "relative",
   flex: 1,
-});
+}));
 
 const FixedHeader = styled("div")({
   position: "absolute",
@@ -74,41 +69,48 @@ const ScrollableWrapper = styled("div")({
   "&::-webkit-scrollbar": {
     width: "12px",
   },
-  "&::-webkit-scrollbar-track": {
-    background: "rgb(126, 128, 124)",
-  },
-  "&::-webkit-scrollbar-thumb": {
-    backgroundColor: "rgb(186 246 101 / 70%)",
-    borderRadius: "20px",
-    // border: "3px solid rgb(186 246 101 / 70%)",
-  },
 });
 
 const TopHeader = styled("div")({
-  padding: "20px",
+  padding: "5px",
+  paddingTop: "17px",
+  paddingLeft: "17px",
+  paddingRight: "20px",
   borderBottom: "1px solid rgba(221, 221, 221, 0.3)",
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
+  "@media only screen and (max-width: 600px)": {
+    padding: "5px",
+    paddingTop: "10px",
+  },
 });
 
 const UserSection = styled("div")({
   display: "flex",
   alignItems: "center",
-  gap: "10px",
+  gap: "15px",
   "& img": {
     width: "40px",
     height: "40px",
     borderRadius: "50%",
   },
-  "& .texts": {
-    "& span": {
-      fontWeight: "bold",
+  "@media only screen and (max-width: 600px)": {
+    gap: "6px",
+    span: {
+      "font-size": "15px",
+      "font-weight": "500",
+      // "font-weight":
     },
-    "& p": {
-      margin: 0,
-      fontSize: "0.9em",
-      color: "green",
+    p: {
+      "font-size": "10px",
+      // "font-weight": "200",
+      // "font-weight":
+    },
+    "& img": {
+      width: "30px",
+      height: "30px",
+      borderRadius: "50%",
     },
   },
 });
@@ -123,37 +125,14 @@ const IconsSection = styled("div")({
   },
 });
 
-// Rest of the component remains the same...
-
 export default function Dialogg() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
-  // const [open, setOpen] = React.useState(false);
-  const {
-    chatId,
-    chatIdName,
-    chatIdPhoto,
-    updatechatId,
-    updateChatIdName,
-    updateChatIdPhoto,
-  } = chatIdStore();
-
+  const { chatId, chatIdName, chatIdPhoto } = chatIdStore();
   const { chatToggle, openToggle, closeToggle } = useChatStore();
-  const [chatDetails, setChatDetails] = useState({
-    id: null,
-    name: "",
-    photo: "",
-  });
+  const [showChat, setShowChat] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   useEffect(() => {
-    setChatDetails({
-      id: chatId,
-      name: chatIdName || "Unknown User",
-      photo: chatIdPhoto || "./avatar.png",
-    });
-  }, []);
-
-  useEffect(() => {
-    console.log("hehehe " + chatId);
+    setShowChat(!!chatId);
   }, [chatId]);
 
   const handleClickOpen = () => {
@@ -162,6 +141,10 @@ export default function Dialogg() {
 
   const handleClose = () => {
     closeToggle();
+  };
+
+  const handleBackClick = () => {
+    setShowChat(false);
   };
 
   return (
@@ -184,10 +167,13 @@ export default function Dialogg() {
         aria-labelledby="customized-dialog-title"
         open={chatToggle}
       >
-        <DialogTitle
-          sx={{ m: 0, p: 3 }}
-          id="customized-dialog-title"
-        ></DialogTitle>
+        <DialogTitle sx={{ m: 0, p: 3 }} id="customized-dialog-title">
+          {isMobile && showChat && (
+            <IconButton onClick={handleBackClick}>
+              <ArrowBackIcon />
+            </IconButton>
+          )}
+        </DialogTitle>
         <IconButton
           aria-label="close"
           onClick={handleClose}
@@ -202,7 +188,9 @@ export default function Dialogg() {
           <CloseIcon />
         </IconButton>
         <ContentContainer>
-          <LeftSection>
+          <LeftSection
+            style={{ display: isMobile && showChat ? "none" : "flex" }}
+          >
             <FixedHeader>
               <Userinfo />
             </FixedHeader>
@@ -210,22 +198,21 @@ export default function Dialogg() {
               <List />
             </ScrollableWrapper>
           </LeftSection>
-
-          <RightSection>
+          <RightSection showChat={showChat}>
             <FixedHeader>
               {chatId && (
                 <TopHeader>
                   <UserSection>
-                    <img src={chatIdPhoto} alt="" />
+                    <img src={chatIdPhoto || "./avatar.png"} alt="" />
                     <div className="texts">
-                      <span>{chatIdName}</span>
+                      <span>{chatIdName || "Unknown User"}</span>
                       <p>Online</p>
                     </div>
                   </UserSection>
                   <IconsSection>
-                    <img src="./phone.png" alt="" />
-                    <img src="./video.png" alt="" />
-                    <img src="./info.png" alt="" />
+                    <img src="./phone.png" alt="Call" />
+                    <img src="./video.png" alt="Video Call" />
+                    <img src="./info.png" alt="Info" />
                   </IconsSection>
                 </TopHeader>
               )}
