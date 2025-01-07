@@ -1,0 +1,18 @@
+/* Add this to your CSS file */
+.--center-all {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+  }
+  
+  /* If you want to add animation to the SVG with CSS instead */
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(30px);
+    }
+  }

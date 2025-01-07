@@ -41,14 +41,7 @@ function Sell() {
       contactNumber: sellerContactNumber,
       sellerNm: sellerName,
       type: productType,
-      email: user.email,
       userId: user.sub,
-      exchangeFor,
-      exchangeOrRent,
-      itemUsedForHowLong,
-      productCondition,
-      rentDuration,
-      rentCost,
     };
 
     try {

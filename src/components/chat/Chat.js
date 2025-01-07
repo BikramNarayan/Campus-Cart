@@ -3,7 +3,13 @@ import React, { useEffect, useRef, useState } from "react";
 import EmojiPicker from "emoji-picker-react";
 import chatIdStore from "../../lib/chatIdStore";
 import { firestore } from "../../firebase";
-import { doc, onSnapshot, updateDoc, arrayUnion } from "@firebase/firestore";
+import {
+  doc,
+  onSnapshot,
+  updateDoc,
+  arrayUnion,
+  getDoc,
+} from "@firebase/firestore";
 import { useAuth0 } from "@auth0/auth0-react";
 import useReceiverStore from "../../lib/receiverStore";
 
@@ -27,16 +33,20 @@ const Chat = () => {
     const unsub = onSnapshot(doc(firestore, "chats", chatId), (doc) => {
       if (doc.exists()) {
         const chatData = doc.data();
-        const sortedMessages = [...(chatData.messages || [])].sort(
+        // Access the "message" array instead of "messages"
+        const messageArray = chatData.message || [];
+
+        // Sort messages by timestamp
+        const sortedMessages = [...messageArray].sort(
           (a, b) => a.timestamp - b.timestamp
         );
+
         setMessages(sortedMessages);
       }
     });
 
     return () => unsub();
   }, [chatId]);
-
   const handleEmoji = (e) => {
     setTextMessage(textMessage + e.emoji);
     setEmojiOpen(false);
@@ -65,39 +75,60 @@ const Chat = () => {
 
       // Add message to chat document
       await updateDoc(chatRef, {
-        messages: arrayUnion({
+        message: arrayUnion({
           sender: user.sub,
           text: textMessage,
           timestamp: Date.now(),
         }),
       });
 
-      // Update last message for current user
-      await updateDoc(userChatRef, {
-        chats: arrayUnion({
-          chatId: chatId,
-          lastMessage: textMessage,
-          receiverId: receiver,
-          updatedAt: Date.now(),
-        }),
-      });
+      // Update user's chat
+      const userChatSnapshot = await getDoc(userChatRef);
+      if (userChatSnapshot.exists()) {
+        const userData = userChatSnapshot.data();
+        const userChats = userData.chats || [];
+        const chatIndex = userChats.findIndex((c) => c.chatId === chatId);
 
-      // Update last message for receiver
-      await updateDoc(receiverChatRef, {
-        chats: arrayUnion({
-          chatId: chatId,
-          lastMessage: textMessage,
-          receiverId: user.sub,
-          updatedAt: Date.now(),
-        }),
-      });
+        if (chatIndex !== -1) {
+          userChats[chatIndex] = {
+            ...userChats[chatIndex],
+            lastMessage: textMessage,
+            updatedAt: Date.now(),
+          };
+
+          await updateDoc(userChatRef, {
+            chats: userChats,
+          });
+        }
+      }
+
+      // Update receiver's chat
+      const receiverChatSnapshot = await getDoc(receiverChatRef);
+      if (receiverChatSnapshot.exists()) {
+        const receiverData = receiverChatSnapshot.data();
+        const receiverChats = receiverData.chats || [];
+        const receiverChatIndex = receiverChats.findIndex(
+          (c) => c.chatId === chatId
+        );
+
+        if (receiverChatIndex !== -1) {
+          receiverChats[receiverChatIndex] = {
+            ...receiverChats[receiverChatIndex],
+            lastMessage: textMessage,
+            updatedAt: Date.now(),
+          };
+
+          await updateDoc(receiverChatRef, {
+            chats: receiverChats,
+          });
+        }
+      }
 
       setTextMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
     }
   };
-
   return (
     <div className="chat">
       <div className="center">

@@ -27,10 +27,10 @@ const YourBlogs = () => {
   const [loadingRides, setLoadingRides] = useState(true);
 
   const fetchProducts = async () => {
-    if (user?.email) {
+    if (user?.sub) {
       const q = query(
         collection(firestore, "products"),
-        where("email", "==", user.email)
+        where("userId", "==", user.sub)
       );
       try {
         const querySnapshot = await getDocs(q);
@@ -47,10 +47,10 @@ const YourBlogs = () => {
   };
 
   const fetchOrders = async () => {
-    if (user?.email) {
+    if (user?.sub) {
       const q = query(
         collection(firestore, "comb_order"),
-        where("email", "==", user.email)
+        where("userId", "==", user.sub)
       );
       try {
         const querySnapshot = await getDocs(q);
@@ -67,10 +67,10 @@ const YourBlogs = () => {
   };
 
   const fetchRideListings = async () => {
-    if (user?.email) {
+    if (user?.sub) {
       const q = query(
         collection(firestore, "ride-sharing"),
-        where("email", "==", user.email)
+        where("userId", "==", user.sub)
       );
       try {
         const querySnapshot = await getDocs(q);

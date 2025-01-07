@@ -93,6 +93,7 @@
     flex-direction: column;
     overflow-y: hidden;
     padding: 20px;
+    margin-bottom: 23px;
     
     .message-sender{
         display: flex;

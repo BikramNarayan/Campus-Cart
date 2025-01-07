@@ -19,11 +19,12 @@ import { Link } from "react-router-dom";
 import useReceiverStore from "../lib/receiverStore";
 import useChatStore from "../lib/chatToggleStore";
 import { useAuth0 } from "@auth0/auth0-react";
+import Loader from "../components/loader/Loader";
 
 function Buy() {
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [productsPerPage] = useState(4);
+  const [productsPerPage] = useState(3);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
@@ -67,10 +68,11 @@ function Buy() {
       querySnapshot.forEach((doc) => {
         productsData.push({ id: doc.id, ...doc.data() });
       });
-      // console.log(productsData);
+      console.log(productsData);
       setProducts(productsData);
       setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.error("Error fetching products:", error);
     }
   };
@@ -94,6 +96,7 @@ function Buy() {
     const chatRef = collection(firestore, "chats");
     const userChatRef = collection(firestore, "userchats");
     setIsSending(true);
+    // console.log("isSending ", isSending);
     try {
       // Get current user's chats
       const userChatDoc = doc(userChatRef, user.sub);
@@ -268,7 +271,7 @@ function Buy() {
             </div>
           </div>
         ) : (
-          <div className="row row-cols-2 row-cols-md-2 row-cols-lg-4 g-0">
+          <div className="row row-cols-2 row-cols-md-2 row-cols-lg-3 g-0">
             {currentProducts.map((product) => (
               <div key={product.id} className="col mb-4">
                 <div className="card card1">
@@ -290,26 +293,36 @@ function Buy() {
                     </p>
                     <h5 className="">Rs {product.price.toFixed(0)}</h5>
 
-                    <div className="col-lg-6">
+                    <div className=" d-inline-flex gap-4">
                       <Link
                         to={`/product/${product.id}`}
-                        className="btn border-success border-2 btn-success w-100"
+                        className="btn border-success border-2 btn-info w-50"
                       >
-                        More
+                        Details
                       </Link>
+                      <button
+                        className="btn border-success border-2 btn-success w-50"
+                        onClick={() => handleMessage(product)}
+                      >
+                        Chat
+                        <img
+                          src="./messenger.png"
+                          alt=""
+                          style={{
+                            width: "21px",
+                            height: "21px",
+                            marginLeft: "8px",
+                          }}
+                        />
+                      </button>
                     </div>
-                    <button
-                      className="btn border-success border-2 btn-success "
-                      onClick={() => handleMessage(product)}
-                    >
-                      {isSending ? "Sending..." : "Chat"}
-                    </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         )}
+        {isSending && <Loader />}
         <div className="text-center my-3 mb-5">
           <button
             className="butn mr-3"
