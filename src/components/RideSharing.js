@@ -1,9 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
 import { firestore } from "../firebase";
 import { Link } from "react-router-dom";
+import {
+  collection,
+  query,
+  getDocs,
+  serverTimestamp,
+  setDoc,
+  doc,
+  updateDoc,
+  arrayUnion,
+  getDoc,
+  addDoc,
+  where,
+  arrayRemove,
+} from "firebase/firestore";
 import "../assets/Ride.css";
+import useReceiverStore from "../lib/receiverStore";
+import useChatStore from "../lib/chatToggleStore";
+import { useAuth0 } from "@auth0/auth0-react";
+import Loader from "./loader/Loader";
 import "../assets/Home.css";
 const RideSharingForm = () => {
   const { isAuthenticated, user } = useAuth0();
@@ -290,6 +306,143 @@ const RideSharingList = () => {
   const [startingPointFilter, setStartingPointFilter] = useState("");
   const [endPointFilter, setEndPointFilter] = useState("");
   const { user } = useAuth0();
+  const [isSending, setIsSending] = useState(false);
+  const { receiver, updateReceiver } = useReceiverStore();
+  const { openToggle } = useChatStore();
+  const handleMessage = async (p) => {
+    // console.log("id of seller " + p.userId);
+    updateReceiver(p.userId);
+    const chatRef = collection(firestore, "chats");
+    const userChatRef = collection(firestore, "userchats");
+    setIsSending(true);
+    // console.log("isSending ", isSending);
+    try {
+      // Get current user's chats
+      const userChatDoc = doc(userChatRef, user.sub);
+      const userChatSnap = await getDoc(userChatDoc);
+
+      // Get receiver's chats
+      const receiverChatDoc = doc(userChatRef, p.userId);
+      const receiverChatSnap = await getDoc(receiverChatDoc);
+
+      // Check if a chat already exists between these users
+      let existingChatId = null;
+      let userChats;
+      if (userChatSnap.exists()) {
+        userChats = userChatSnap.data().chats || [];
+        const existingChat = userChats.find(
+          (chat) => chat.receiverId === p.userId
+        );
+        if (existingChat) {
+          existingChatId = existingChat.chatId;
+        }
+      }
+
+      const temp_message = `Hi ${p.name}, I am interested in a ride from ${p.startingPoint} to ${p.endPoint} on ${p.date} at ${p.time}. Could you please confirm the availability and share any additional details regarding the ride? Thank you!`;
+
+      if (existingChatId) {
+        // Get the existing chat document
+        const existingChatDoc = doc(chatRef, existingChatId);
+
+        // Add new message to the messages array
+        await updateDoc(existingChatDoc, {
+          message: arrayUnion({
+            sender: user.sub,
+            text: temp_message,
+            timestamp: Date.now(),
+          }),
+        });
+
+        // Update last message and timestamp in userchats for both users
+        const chatData = {
+          lastMessage: temp_message,
+          updatedAt: Date.now(),
+        };
+
+        // Update current user's chat
+        await updateDoc(userChatDoc, {
+          chats: arrayRemove(
+            userChats.find((chat) => chat.chatId === existingChatId)
+          ),
+        });
+        await updateDoc(userChatDoc, {
+          chats: arrayUnion({
+            chatId: existingChatId,
+            lastMessage: temp_message,
+            receiverId: p.userId,
+            updatedAt: chatData.updatedAt,
+          }),
+        });
+
+        // Update receiver's chat
+        if (receiverChatSnap.exists()) {
+          const receiverChats = receiverChatSnap.data().chats || [];
+          await updateDoc(receiverChatDoc, {
+            chats: arrayRemove(
+              receiverChats.find((chat) => chat.chatId === existingChatId)
+            ),
+          });
+          await updateDoc(receiverChatDoc, {
+            chats: arrayUnion({
+              chatId: existingChatId,
+              lastMessage: temp_message,
+              receiverId: user.sub,
+              updatedAt: chatData.updatedAt,
+            }),
+          });
+        }
+      } else {
+        // Create new chat if none exists
+        const newChatRef = doc(chatRef);
+        await setDoc(newChatRef, {
+          createdAt: serverTimestamp(),
+          message: [
+            {
+              sender: user.sub,
+              text: temp_message,
+              timestamp: Date.now(),
+            },
+          ],
+        });
+
+        // Initialize userChat documents if they don't exist
+        if (!userChatSnap.exists()) {
+          await setDoc(userChatDoc, { chats: [] });
+        }
+        if (!receiverChatSnap.exists()) {
+          await setDoc(receiverChatDoc, { chats: [] });
+        }
+
+        // Add new chat to both users
+        const chatData = {
+          chatId: newChatRef.id,
+          lastMessage: temp_message,
+          receiverId: p.userId,
+          updatedAt: Date.now(),
+        };
+
+        await updateDoc(userChatDoc, {
+          chats: arrayUnion(chatData),
+        });
+
+        await updateDoc(receiverChatDoc, {
+          chats: arrayUnion({
+            chatId: newChatRef.id,
+            lastMessage: temp_message,
+            receiverId: user.sub,
+            updatedAt: Date.now(),
+          }),
+        });
+      }
+      setIsSending(false);
+      openToggle();
+      console.log("current seller id " + p.userId);
+    } catch (error) {
+      setIsSending(false);
+      console.error("Error in handleMessage:", error);
+    }
+  };
+
   const fetchRideListings = async () => {
     const rideSharingCollection = collection(firestore, "ride-sharing");
     const q = query(rideSharingCollection, where("userId", "!=", user?.sub));
@@ -365,27 +518,53 @@ const RideSharingList = () => {
         </div>
         {filteredListings.map((listing) => (
           <div key={listing.id} className="col mb-4">
-            <Link
-              style={{ textDecoration: "none" }}
-              to={`/ridedetails/${listing.id}`}
+            <div
+              className="card"
+              style={{ borderRadius: 15, border: "2px solid #3f7243" }}
             >
-              <div
-                className="card"
-                style={{ borderRadius: 15, border: "2px solid #3f7243" }}
-              >
-                <div className="card-body">
-                  <h5 className="card-title">
-                    {listing.startingPoint} to {listing.endPoint}
-                  </h5>
-                  <p className="card-text">
-                    Date: {listing.date} &nbsp;&nbsp;&nbsp; Passenger required :{" "}
-                    {listing.passengerCount} &nbsp;&nbsp;&nbsp; Via :{" "}
-                    {listing.type}
-                  </p>
-                  {/* Add other information here (name, age, gender, contactNumber) */}
-                </div>
+              <div className="card-body">
+                <h5 className="card-title">
+                  {listing.startingPoint} to {listing.endPoint}
+                </h5>
+                <p className="card-text">
+                  Date: {listing.date} &nbsp;&nbsp;&nbsp; Passenger required :{" "}
+                  {listing.passengerCount} &nbsp;&nbsp;&nbsp; Via :{" "}
+                  {listing.type}
+                </p>
               </div>
-            </Link>
+              <div
+                style={{
+                  gap: "10px",
+                  display: "flex",
+                  margin: "10px",
+                  marginTop: "-3px",
+                }}
+              >
+                <Link
+                  className="btn border-success border-2 btn-info w-50"
+                  style={{ maxWidth: "130px" }}
+                  to={`/ridedetails/${listing.id}`}
+                >
+                  Details
+                </Link>
+                <button
+                  className="btn border-success border-2 btn-success w-50"
+                  style={{ maxWidth: "130px" }}
+                  onClick={() => handleMessage(listing)}
+                >
+                  Chat
+                  <img
+                    src="./messenger.png"
+                    alt=""
+                    style={{
+                      width: "21px",
+                      height: "21px",
+                      marginLeft: "8px",
+                    }}
+                  />
+                </button>
+              </div>
+            </div>
           </div>
         ))}
       </div>

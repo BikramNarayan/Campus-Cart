@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  getDocs,
+  serverTimestamp,
+  setDoc,
+  doc,
+  updateDoc,
+  arrayUnion,
+  getDoc,
+  addDoc,
+  where,
+  arrayRemove,
+} from "firebase/firestore";
 import { firestore } from "../firebase";
 import { Link } from "react-router-dom";
 import "../assets/Ride.css";
@@ -12,6 +25,8 @@ import bigBasket from "../assets/combo4.png";
 import zomato from "../assets/combo5.jpg";
 import swiggy from "../assets/combo6.png";
 import defaultBadge from "../assets/combo7.jpg";
+import useReceiverStore from "../lib/receiverStore";
+import useChatStore from "../lib/chatToggleStore";
 
 const CombineOrderForm = () => {
   const { isAuthenticated, user } = useAuth0();
@@ -192,13 +207,22 @@ const CombineOrderList = () => {
   const [brandNameFilter, setBrandNameFilter] = useState("");
   const [perPageLimit] = useState(3);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isSending, setIsSending] = useState(false);
+  const { receiver, updateReceiver } = useReceiverStore();
+  const { openToggle } = useChatStore();
   let end = currentPage * perPageLimit;
+  const { user } = useAuth0();
   let start = end - perPageLimit;
-  const fetchOrderListings = async () => {
-    const orderCollection = collection(firestore, "comb_order");
+  // const citiesRef = collection(db, "cities");
 
+  // Create a query against the collection.
+  // const q = query(citiesRef, where("state", "==", "CA"));
+  const fetchOrderListings = async () => {
+    if (!user) return;
+    const orderCollection = collection(firestore, "comb_order");
+    const q = query(orderCollection, where("userId", "!=", user?.sub));
     try {
-      const querySnapshot = await getDocs(orderCollection);
+      const querySnapshot = await getDocs(q);
       const orderData = [];
 
       querySnapshot.forEach((doc) => {
@@ -259,6 +283,141 @@ const CombineOrderList = () => {
     setCurrentPage(pagenNumber);
     console.log(start, end);
   };
+
+  const handleMessage = async (p) => {
+    // console.log("id of seller " + p.userId);
+    console.log("combo pro " + JSON.stringify(p));
+    updateReceiver(p.userId);
+    const chatRef = collection(firestore, "chats");
+    const userChatRef = collection(firestore, "userchats");
+    setIsSending(true);
+    // console.log("isSending ", isSending);
+    try {
+      // Get current user's chats
+      const userChatDoc = doc(userChatRef, user.sub);
+      const userChatSnap = await getDoc(userChatDoc);
+
+      // Get receiver's chats
+      const receiverChatDoc = doc(userChatRef, p.userId);
+      const receiverChatSnap = await getDoc(receiverChatDoc);
+
+      // Check if a chat already exists between these users
+      let existingChatId = null;
+      let userChats;
+      if (userChatSnap.exists()) {
+        userChats = userChatSnap.data().chats || [];
+        const existingChat = userChats.find(
+          (chat) => chat.receiverId === p.userId
+        );
+        if (existingChat) {
+          existingChatId = existingChat.chatId;
+        }
+      }
+
+      const temp_message = `Hi ${p.name} 😊, I noticed your amazing offer from ${p.brandName} 🍕—"${p.offer}". I’m interested in combining my order! I still need ₹${p.amountRequired} to reach the free delivery threshold. Let’s team up to save on delivery! 🚚💸 Please let me know if you're interested. Thanks!`;
+
+      if (existingChatId) {
+        // Get the existing chat document
+        const existingChatDoc = doc(chatRef, existingChatId);
+
+        // Add new message to the messages array
+        await updateDoc(existingChatDoc, {
+          message: arrayUnion({
+            sender: user.sub,
+            text: temp_message,
+            timestamp: Date.now(),
+          }),
+        });
+
+        // Update last message and timestamp in userchats for both users
+        const chatData = {
+          lastMessage: temp_message,
+          updatedAt: Date.now(),
+        };
+
+        // Update current user's chat
+        await updateDoc(userChatDoc, {
+          chats: arrayRemove(
+            userChats.find((chat) => chat.chatId === existingChatId)
+          ),
+        });
+        await updateDoc(userChatDoc, {
+          chats: arrayUnion({
+            chatId: existingChatId,
+            lastMessage: temp_message,
+            receiverId: p.userId,
+            updatedAt: chatData.updatedAt,
+          }),
+        });
+
+        // Update receiver's chat
+        if (receiverChatSnap.exists()) {
+          const receiverChats = receiverChatSnap.data().chats || [];
+          await updateDoc(receiverChatDoc, {
+            chats: arrayRemove(
+              receiverChats.find((chat) => chat.chatId === existingChatId)
+            ),
+          });
+          await updateDoc(receiverChatDoc, {
+            chats: arrayUnion({
+              chatId: existingChatId,
+              lastMessage: temp_message,
+              receiverId: user.sub,
+              updatedAt: chatData.updatedAt,
+            }),
+          });
+        }
+      } else {
+        // Create new chat if none exists
+        const newChatRef = doc(chatRef);
+        await setDoc(newChatRef, {
+          createdAt: serverTimestamp(),
+          message: [
+            {
+              sender: user.sub,
+              text: temp_message,
+              timestamp: Date.now(),
+            },
+          ],
+        });
+
+        // Initialize userChat documents if they don't exist
+        if (!userChatSnap.exists()) {
+          await setDoc(userChatDoc, { chats: [] });
+        }
+        if (!receiverChatSnap.exists()) {
+          await setDoc(receiverChatDoc, { chats: [] });
+        }
+
+        // Add new chat to both users
+        const chatData = {
+          chatId: newChatRef.id,
+          lastMessage: temp_message,
+          receiverId: p.userId,
+          updatedAt: Date.now(),
+        };
+
+        await updateDoc(userChatDoc, {
+          chats: arrayUnion(chatData),
+        });
+
+        await updateDoc(receiverChatDoc, {
+          chats: arrayUnion({
+            chatId: newChatRef.id,
+            lastMessage: temp_message,
+            receiverId: user.sub,
+            updatedAt: Date.now(),
+          }),
+        });
+      }
+      setIsSending(false);
+      openToggle();
+      console.log("current seller id " + p.userId);
+    } catch (error) {
+      setIsSending(false);
+      console.error("Error in handleMessage:", error);
+    }
+  };
   return (
     <div className="container existing-order">
       <hr />
@@ -296,6 +455,23 @@ const CombineOrderList = () => {
                 <p className="card-text">Posted by: {listing.name}</p>
                 <p className="card-text">Phone: {listing.phoneNumber}</p>
               </div>
+
+              <button
+                className="btn border-success border-2 btn-success w-50"
+                style={{ maxWidth: "130px", marginLeft: "12px" }}
+                onClick={() => handleMessage(listing)}
+              >
+                Chat
+                <img
+                  src="./messenger.png"
+                  alt=""
+                  style={{
+                    width: "21px",
+                    height: "21px",
+                    marginLeft: "8px",
+                  }}
+                />
+              </button>
             </div>
           </div>
         ))}

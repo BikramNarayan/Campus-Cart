@@ -271,7 +271,7 @@ function Buy() {
             </div>
           </div>
         ) : (
-          <div className="row row-cols-2 row-cols-md-2 row-cols-lg-3 g-0">
+          <div className="row row-cols-1 row-cols-md-1 row-cols-lg-3 g-0">
             {currentProducts.map((product) => (
               <div key={product.id} className="col mb-4">
                 <div className="card card1">

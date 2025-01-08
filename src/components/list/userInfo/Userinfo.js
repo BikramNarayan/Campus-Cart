@@ -10,7 +10,18 @@ const Userinfo = () => {
     <div className="userinfo">
       <div className="user">
         <img src={user.picture ? user.picture : "./avatar.png"} alt="" />
-        <h2>{user?.name || user?.nickname}</h2>
+        <h2>
+          {(user?.name || user?.nickname)?.length > 13
+            ? `${(user?.name || user?.nickname)
+                .split(" ")
+                .reduce((result, word) => {
+                  if (result.length + word.length <= 16) {
+                    return result.length === 0 ? word : `${result} ${word}`;
+                  }
+                  return result;
+                }, "")}...`
+            : user?.name || user?.nickname}
+        </h2>
       </div>
       <div className="icons">
         <img src="./more.png" alt="" />
