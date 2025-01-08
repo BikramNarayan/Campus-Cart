@@ -563,6 +563,7 @@ const RideSharingList = () => {
                     }}
                   />
                 </button>
+                {isSending && <Loader />}
               </div>
             </div>
           </div>

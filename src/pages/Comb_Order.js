@@ -27,6 +27,7 @@ import swiggy from "../assets/combo6.png";
 import defaultBadge from "../assets/combo7.jpg";
 import useReceiverStore from "../lib/receiverStore";
 import useChatStore from "../lib/chatToggleStore";
+import Loader from "../components/loader/Loader";
 
 const CombineOrderForm = () => {
   const { isAuthenticated, user } = useAuth0();
@@ -472,6 +473,7 @@ const CombineOrderList = () => {
                   }}
                 />
               </button>
+              {isSending && <Loader />}
             </div>
           </div>
         ))}
