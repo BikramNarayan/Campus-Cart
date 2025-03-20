@@ -35,10 +35,10 @@ function Contact() {
         <div className="green">
           <p>
             All rights reserved ©️CampusCart 2023 <br />
-            Developed by{" "}
+            {/* Developed by{" "}
             <a href="https://www.linkedin.com/in/bikram-narayan/">
               Bikram Narayan Dhanraj
-            </a>{" "}
+            </a>{" "} */}
             <span className="up-arrow">
               <a className="p-2" href="#">
                 <i className="bx bx-up-arrow-alt"></i>

@@ -92,6 +92,7 @@ function Buy() {
 
   const handleMessage = async (p) => {
     console.log("id of seller " + p.userId);
+    console.log(p.imageUrl);
     updateReceiver(p.userId);
     const chatRef = collection(firestore, "chats");
     const userChatRef = collection(firestore, "userchats");
@@ -149,6 +150,7 @@ function Buy() {
         await updateDoc(userChatDoc, {
           chats: arrayUnion({
             chatId: existingChatId,
+            imageUrl: p.imageUrl,
             lastMessage: temp_message,
             receiverId: p.userId,
             updatedAt: chatData.updatedAt,
@@ -166,6 +168,7 @@ function Buy() {
           await updateDoc(receiverChatDoc, {
             chats: arrayUnion({
               chatId: existingChatId,
+              imageUrl: p.imageUrl,
               lastMessage: temp_message,
               receiverId: user.sub,
               updatedAt: chatData.updatedAt,
@@ -197,6 +200,7 @@ function Buy() {
         // Add new chat to both users
         const chatData = {
           chatId: newChatRef.id,
+          imageUrl: p.imageUrl,
           lastMessage: temp_message,
           receiverId: p.userId,
           updatedAt: Date.now(),
@@ -209,6 +213,7 @@ function Buy() {
         await updateDoc(receiverChatDoc, {
           chats: arrayUnion({
             chatId: newChatRef.id,
+            imageUrl: p.imageUrl,
             lastMessage: temp_message,
             receiverId: user.sub,
             updatedAt: Date.now(),
